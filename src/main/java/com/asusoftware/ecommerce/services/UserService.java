@@ -9,7 +9,7 @@ import com.asusoftware.ecommerce.model.User;
 import java.util.List;
 import java.util.Optional;
 
-public interface UserServices {
+public interface UserService {
 
     List<UserDto> getUsers();
     Optional<User> insertUser(User user);

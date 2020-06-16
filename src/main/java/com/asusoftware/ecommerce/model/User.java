@@ -47,7 +47,7 @@ public class User {
 
     // responsabile per il collegamento ad un'altra tabella
     // mappedBy... Indica che non deve crearsi questa tabella perchè lo fa già la tabella Ad
-    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL) // un user a molti annunci, mappedBy si riferisce al field dove e stata fatta la foreinKey
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL) // un user a molti annunci, mappedBy si riferisce al field dove e stata fatta la foreinKey
     private List<Ad> ads;
 
     // Getters
