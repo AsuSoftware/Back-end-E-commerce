@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name = "ads")
+@Table(name = "ad")
 public class Ad {
 
     @Id
@@ -19,7 +19,7 @@ public class Ad {
     @Column(name = "title")
     private String titleProduct;
 
-    @Column(name = "description")
+    @Column(name = "description_product")
     private String descriptionProduct;
 
     @Column(name = "price")

@@ -120,34 +120,31 @@ public class UserServiceImpl implements UserService {
 		ad.setTitleProduct(adDto.getTitleProduct());
 		ad.setUser(user);
 
-	/*	adDto.getImages()
-				.stream().map(image -> {
-					Image img = new Image();
-			        img.setImage(image);
-			        img.setAd(ad);
-			        return img;
-		}); */
 
 	List<Image> images = new ArrayList<>();
-
-		for (String image: adDto.getImages()) {
+		System.out.println(adDto.getImages());
+	if (adDto.getImages() != null && adDto.getImages().size() > 0) {
+		for (Image image: adDto.getImages()) {
 			Image img = new Image();
 			// pe Entitatea image setez ad-ul
 			img.setAd(ad);
-			img.setImage(image);
+			img.setImage(image.getImage());
 			// adaug entitatea imagine in lista de pe ad
 			images.add(img);
 			System.out.println("proba");
 		}
-
-		//ad.getImages().add(image); // nullPointerException imi da
+		for (Image img: images) {
+			System.out.println(img);
+		}
+		System.out.println("immagine " + images);
 		ad.setImages(images);
-		System.out.println("1");
+	}
+
+
 		// setez ad-ul in lista de pe user
 		user.getAds()
 				.add(ad);
-		System.out.println("2");
-		System.out.println(user.getAds());
+		System.out.println("entità: " + user.getAds());
 		repoUser.save(user);
 		System.out.println("merge");
 		return convertAdInDto(ad);
@@ -209,6 +206,8 @@ public class UserServiceImpl implements UserService {
 		adDto.setPriceProduct(ad.getPriceProduct());
 		//adDto.getImages().add(ad.getImages());
 		//adDto.setImageProduct(ad.getImageProduct());
+		System.out.println(ad.getImages());
+		adDto.setImages(ad.getImages());
 		adDto.setDescriptionProduct(ad.getDescriptionProduct());
 		adDto.setTitleProduct(ad.getTitleProduct());
 		adDto.setCategory(ad.getCategory());

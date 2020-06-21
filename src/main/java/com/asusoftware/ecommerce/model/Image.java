@@ -1,9 +1,11 @@
 package com.asusoftware.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 @Entity
-@Table(name = "images")
+@Table(name = "image")
 public class Image {
 
     @Id
@@ -11,8 +13,9 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "image")
+    @Column(name = "image_product")
     private String image;
+
 
     @ManyToOne // molti annunci su uno user
     @JoinColumn(name = "ad_id")

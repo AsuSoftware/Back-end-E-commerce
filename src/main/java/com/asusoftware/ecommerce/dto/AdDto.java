@@ -7,7 +7,7 @@ import java.util.List;
 public class AdDto {
 
     private Long id;
-    private List<String> images;
+    private List<Image> images;
     private String titleProduct;
     private String descriptionProduct;
     private Double priceProduct;
@@ -23,11 +23,11 @@ public class AdDto {
         this.id = id;
     }
 
-    public List<String> getImages() {
+    public List<Image> getImages() {
         return images;
     }
 
-    public void setImages(List<String> images) {
+    public void setImages(List<Image> images) {
         this.images = images;
     }
 
