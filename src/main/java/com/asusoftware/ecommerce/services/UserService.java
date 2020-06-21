@@ -14,7 +14,7 @@ public interface UserService {
     List<UserDto> getUsers();
     Optional<User> insertUser(User user);
     User getUserById(Long id) throws Exception;
-    UserDto getLogin(String email, String password);
+    UserDto findByEmailAndPassword(String email, String password);
     User updateUser(User user, Long id);
     void deleteUser(Long id, String password) throws Exception;
 

@@ -1,6 +1,7 @@
 package com.asusoftware.ecommerce.model;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "ads")
@@ -11,9 +12,9 @@ public class Ad {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    // @Todo search a way to insert image converted in base64 on the database
+   /* // @Todo search a way to insert image converted in base64 on the database
     @Column(name = "image")
-    private String imageProduct;
+    private String imageProduct; */
 
     @Column(name = "title")
     private String titleProduct;
@@ -31,6 +32,9 @@ public class Ad {
     @ManyToOne // molti annunci su uno user
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "ad", cascade = CascadeType.ALL) // un user a molti annunci, mappedBy si riferisce al field dove e stata fatta la foreinKey
+    private List<Image> images;
 
 
     // getters and setters
@@ -51,13 +55,14 @@ public class Ad {
         this.id = id;
     }
 
+    /*
     public String getImageProduct() {
         return imageProduct;
     }
 
     public void setImageProduct(String imageProduct) {
         this.imageProduct = imageProduct;
-    }
+    } */
 
     public String getDescriptionProduct() {
         return descriptionProduct;
@@ -81,5 +86,34 @@ public class Ad {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<Image> getImages() {
+        return images;
+    }
+
+    public void setImages(List<Image> images) {
+        this.images = images;
+    }
+
+    @Override
+    public String toString() {
+        return "Ad{" +
+                "id=" + id +
+                ", titleProduct='" + titleProduct + '\'' +
+                ", descriptionProduct='" + descriptionProduct + '\'' +
+                ", priceProduct=" + priceProduct +
+                ", category='" + category + '\'' +
+                ", user=" + user +
+                ", images=" + images +
+                '}';
     }
 }

@@ -1,9 +1,13 @@
 package com.asusoftware.ecommerce.dto;
 
+import com.asusoftware.ecommerce.model.Image;
+
+import java.util.List;
+
 public class AdDto {
 
     private Long id;
-    private String imageProduct;
+    private List<String> images;
     private String titleProduct;
     private String descriptionProduct;
     private Double priceProduct;
@@ -19,12 +23,12 @@ public class AdDto {
         this.id = id;
     }
 
-    public String getImageProduct() {
-        return imageProduct;
+    public List<String> getImages() {
+        return images;
     }
 
-    public void setImageProduct(String imageProduct) {
-        this.imageProduct = imageProduct;
+    public void setImages(List<String> images) {
+        this.images = images;
     }
 
     public String getTitleProduct() {
@@ -57,5 +61,17 @@ public class AdDto {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    @Override
+    public String toString() {
+        return "AdDto{" +
+                "id=" + id +
+                ", image=" + images +
+                ", titleProduct='" + titleProduct + '\'' +
+                ", descriptionProduct='" + descriptionProduct + '\'' +
+                ", priceProduct=" + priceProduct +
+                ", category='" + category + '\'' +
+                '}';
     }
 }

@@ -1,5 +1,6 @@
 package com.asusoftware.ecommerce.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.exceptions.InvalidPasswordException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
 import com.asusoftware.ecommerce.model.Ad;
+import com.asusoftware.ecommerce.model.Image;
 import com.asusoftware.ecommerce.model.User;
 import com.asusoftware.ecommerce.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -48,16 +50,9 @@ public class UserServiceImpl implements UserService {
 
 	// method for login user
 	@Override
-	public UserDto getLogin(String email, String password) {
-		UserDto userDto = new UserDto();
-		User user = repoUser.getLogin(email, password);
-		userDto.setId(user.getId());
-		userDto.setName(user.getName());
-		userDto.setLastName(user.getLastName());
-		userDto.setGender(user.getGender());
-		userDto.setEmail(user.getEmail());
-		userDto.setBirthday(user.getBirthday());
-		return userDto;
+	public UserDto findByEmailAndPassword(String email, String password) {
+			User user = repoUser.findByEmailAndPassword(email, password).orElseThrow(NotFoundUserException::new);
+			return convertUserInDto(user);
 	}
 
 	// update user
@@ -87,33 +82,84 @@ public class UserServiceImpl implements UserService {
 	}
 
 	// Ads
-	// get all ads in database
+	// get all ads from database
 	@Override
 	public List<AdDto> getAllAds() {
-		return repoUser.getAds()
+
+		/*
+		List<Ad> ads = repoUser.findAll().stream()
+				.filter(user -> user.getAds() != null)
+				.map(User::getAds)
+				.flatMap(List::stream)
+				.collect(Collectors.toList());
+		List<AdDto> adsDto = convertAdsInDto(ads); */
+	//	List<AdDto> ads = repoUser.getAllAds().stream().map(this::convertAdInDto).collect(Collectors.toList());
+		List<User> users = repoUser.findAll().stream().filter(user -> user.getAds().size() > 0).collect(Collectors.toList());
+
+		List<AdDto> adsDto = users.stream().map(User::getAds).map(this::convertAdsInDto).flatMap(List::stream).collect(Collectors.toList());
+	/*	return repoUser.getAds()
 				.stream()
 				.map(this::convertAdInDto)
-				.collect(Collectors.toList());
+				.collect(Collectors.toList()); */
+	    return adsDto;
 	}
 
 	@Override
 	public AdDto insertAd(AdDto adDto, Long id) {
+
+		// find the current user
 		User user = repoUser.findById(id)
 				.orElseThrow(NotFoundUserException::new);
-		user.getAds()
-				.add(convertAdInEntity(adDto));
-		repoUser.save(user);
-		Ad ad = user.getAds()
-				.get(user.getAds()
-						.size() - 1);
 
+		// setez userul pe ad
+		Ad ad = new Ad();
+		ad.setCategory(adDto.getCategory());
+		ad.setDescriptionProduct(adDto.getDescriptionProduct());
+		//ad.setImageProduct(adDto.getImageProduct());
+		ad.setPriceProduct(adDto.getPriceProduct());
+		ad.setTitleProduct(adDto.getTitleProduct());
+		ad.setUser(user);
+
+	/*	adDto.getImages()
+				.stream().map(image -> {
+					Image img = new Image();
+			        img.setImage(image);
+			        img.setAd(ad);
+			        return img;
+		}); */
+
+	List<Image> images = new ArrayList<>();
+
+		for (String image: adDto.getImages()) {
+			Image img = new Image();
+			// pe Entitatea image setez ad-ul
+			img.setAd(ad);
+			img.setImage(image);
+			// adaug entitatea imagine in lista de pe ad
+			images.add(img);
+			System.out.println("proba");
+		}
+
+		//ad.getImages().add(image); // nullPointerException imi da
+		ad.setImages(images);
+		System.out.println("1");
+		// setez ad-ul in lista de pe user
+		user.getAds()
+				.add(ad);
+		System.out.println("2");
+		System.out.println(user.getAds());
+		repoUser.save(user);
+		System.out.println("merge");
 		return convertAdInDto(ad);
 	}
 
 	@Override
 	public AdDto getAdById(Long id) {
-		Ad ad = repoUser.getAdById(id);
-		return convertAdInDto(ad);
+		Optional<Ad> ad = repoUser.findAdById(id);
+	/*	List<Ad> ad = user.getAds().stream()
+				.filter(ad1 -> ad1.getId().equals(id))
+				.collect(Collectors.toList()); */
+		return convertAdInDtoOptional(ad);
 	}
 
 	@Override
@@ -161,22 +207,51 @@ public class UserServiceImpl implements UserService {
 		AdDto adDto = new AdDto();
 		adDto.setId(ad.getId());
 		adDto.setPriceProduct(ad.getPriceProduct());
-		adDto.setImageProduct(ad.getImageProduct());
+		//adDto.getImages().add(ad.getImages());
+		//adDto.setImageProduct(ad.getImageProduct());
 		adDto.setDescriptionProduct(ad.getDescriptionProduct());
 		adDto.setTitleProduct(ad.getTitleProduct());
 		adDto.setCategory(ad.getCategory());
 		return adDto;
 	}
 
+	// metodo per conversione da entità ad a Dto
+	private AdDto convertAdInDtoOptional(Optional<Ad> ad) {
+		AdDto adDto = new AdDto();
+		adDto.setId(ad.get().getId());
+		adDto.setPriceProduct(ad.get().getPriceProduct());
+		//adDto.setImageProduct(ad.get().getImageProduct());
+		adDto.setDescriptionProduct(ad.get().getDescriptionProduct());
+		adDto.setTitleProduct(ad.get().getTitleProduct());
+		adDto.setCategory(ad.get().getCategory());
+		return adDto;
+	}
+
+	// metodo per conversione da entità ad a Dto con foreach
+	private List<AdDto> convertAdsInDto(List<Ad> ads) {
+		List<AdDto> adsDto = new ArrayList<>();
+		for (Ad ad: ads) {
+			AdDto adDto = new AdDto();
+			adDto.setId(ad.getId());
+			adDto.setPriceProduct(ad.getPriceProduct());
+			//adDto.setImageProduct(ad.getImageProduct());
+			adDto.setDescriptionProduct(ad.getDescriptionProduct());
+			adDto.setTitleProduct(ad.getTitleProduct());
+			adDto.setCategory(ad.getCategory());
+			adsDto.add(adDto);
+		}
+		return adsDto;
+	}
+
 	// metodo per conversione da Dto ad a Entità
 	private Ad convertAdInEntity(AdDto adDto) {
 		Ad ad = new Ad();
-		ad.setId(adDto.getId());
 		ad.setPriceProduct(adDto.getPriceProduct());
-		ad.setImageProduct(adDto.getImageProduct());
+		//ad.setImageProduct(adDto.getImageProduct());
 		ad.setDescriptionProduct(adDto.getDescriptionProduct());
 		ad.setTitleProduct(adDto.getTitleProduct());
 		ad.setCategory(adDto.getCategory());
 		return ad;
 	}
+
 }

@@ -2,6 +2,7 @@ package com.asusoftware.ecommerce.controllers;
 
 import java.util.List;
 
+import com.asusoftware.ecommerce.dto.LoginDto;
 import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.exceptions.InvalidPasswordException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
@@ -37,23 +38,24 @@ public class UserController {
 	}
 
 	// login
-	@GetMapping(value = "login/{email}/{password}") // ce plm e asta )) se face POST pe login deci nu o sa folosesti path variable
-	private ResponseEntity<UserDto> getUser(@PathVariable("email") String email, @PathVariable("password") String password) {
-		UserDto user = userService.getLogin(email, password);
-		if (user == null)
-			return ResponseEntity.badRequest()
-					.build();
-		return ResponseEntity.ok(user);
+	@PostMapping(value = "login")
+	private ResponseEntity<UserDto> findByEmailAndPassword(@RequestBody LoginDto login) {
+		try {
+			UserDto user = userService.findByEmailAndPassword(login.getEmail(), login.getPassword());
+			return ResponseEntity.ok(user);
+		} catch (NotFoundUserException ex) {
+			return ResponseEntity.notFound().build();
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
 	}
 
 	// get all users
 	@GetMapping
 	private ResponseEntity<List<UserDto>> getUsers() {
-		System.out.println("first");
 		try {
 			return ResponseEntity.ok(userService.getUsers());
 		} catch (Exception ex) {
-			System.out.println("second");
 			return ResponseEntity.notFound()
 					.build();
 		}
