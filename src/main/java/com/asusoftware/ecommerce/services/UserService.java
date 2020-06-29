@@ -3,6 +3,7 @@ package com.asusoftware.ecommerce.services;
 import com.asusoftware.ecommerce.dto.AdDto;
 import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.model.Ad;
+import com.asusoftware.ecommerce.model.Image;
 import com.asusoftware.ecommerce.model.User;
 
 
@@ -23,4 +24,5 @@ public interface UserService {
     AdDto getAdById(Long id);
     AdDto updateAd(AdDto adDto, Long userId, Long adId);
     void deleteAd(Long id);
+
 }

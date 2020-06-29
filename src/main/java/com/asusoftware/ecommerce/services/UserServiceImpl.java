@@ -8,10 +8,13 @@ import java.util.stream.Collectors;
 import com.asusoftware.ecommerce.dto.AdDto;
 import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.exceptions.InvalidPasswordException;
+import com.asusoftware.ecommerce.exceptions.NotFoundAdException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
 import com.asusoftware.ecommerce.model.Ad;
 import com.asusoftware.ecommerce.model.Image;
 import com.asusoftware.ecommerce.model.User;
+import com.asusoftware.ecommerce.repository.AdRepository;
+import com.asusoftware.ecommerce.repository.ImageRepository;
 import com.asusoftware.ecommerce.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +22,13 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
 
 	private UserRepository repoUser;
+	private AdRepository adRepository;
+	private ImageRepository imageRepository;
 
-	public UserServiceImpl(UserRepository userRepository) {
+	public UserServiceImpl(UserRepository userRepository, AdRepository adRepository, ImageRepository imageRepository) {
 		repoUser = userRepository;
+		this.adRepository = adRepository;
+		this.imageRepository = imageRepository;
 	}
 
 	// get users
@@ -86,21 +93,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public List<AdDto> getAllAds() {
 
-		/*
-		List<Ad> ads = repoUser.findAll().stream()
-				.filter(user -> user.getAds() != null)
-				.map(User::getAds)
-				.flatMap(List::stream)
-				.collect(Collectors.toList());
-		List<AdDto> adsDto = convertAdsInDto(ads); */
-	//	List<AdDto> ads = repoUser.getAllAds().stream().map(this::convertAdInDto).collect(Collectors.toList());
-		List<User> users = repoUser.findAll().stream().filter(user -> user.getAds().size() > 0).collect(Collectors.toList());
+		//List<User> users = repoUser.findAll().stream().filter(user -> user.getAds().size() > 0).collect(Collectors.toList());
+		//List<AdDto> adsDto = users.stream().map(User::getAds).map(this::convertAdsInDto).flatMap(List::stream).collect(Collectors.toList());
 
-		List<AdDto> adsDto = users.stream().map(User::getAds).map(this::convertAdsInDto).flatMap(List::stream).collect(Collectors.toList());
-	/*	return repoUser.getAds()
-				.stream()
-				.map(this::convertAdInDto)
-				.collect(Collectors.toList()); */
+		List<AdDto> adsDto = adRepository.findAll().stream().map(this::convertAdInDto).collect(Collectors.toList());
+
 	    return adsDto;
 	}
 
@@ -111,63 +108,62 @@ public class UserServiceImpl implements UserService {
 		User user = repoUser.findById(id)
 				.orElseThrow(NotFoundUserException::new);
 
-		// setez userul pe ad
 		Ad ad = new Ad();
-		ad.setCategory(adDto.getCategory());
-		ad.setDescriptionProduct(adDto.getDescriptionProduct());
-		//ad.setImageProduct(adDto.getImageProduct());
-		ad.setPriceProduct(adDto.getPriceProduct());
 		ad.setTitleProduct(adDto.getTitleProduct());
+		ad.setCategory(adDto.getCategory());
+		ad.setPriceProduct(adDto.getPriceProduct());
+		ad.setDescriptionProduct(adDto.getDescriptionProduct());
 		ad.setUser(user);
+		adRepository.save(ad);
 
-
-	List<Image> images = new ArrayList<>();
-		System.out.println(adDto.getImages());
-	if (adDto.getImages() != null && adDto.getImages().size() > 0) {
-		for (Image image: adDto.getImages()) {
+		List<Image> images = adDto.getImages().stream().map(image -> {
 			Image img = new Image();
-			// pe Entitatea image setez ad-ul
-			img.setAd(ad);
 			img.setImage(image.getImage());
-			// adaug entitatea imagine in lista de pe ad
-			images.add(img);
-			System.out.println("proba");
-		}
-		for (Image img: images) {
-			System.out.println(img);
-		}
-		System.out.println("immagine " + images);
-		ad.setImages(images);
-	}
+			// pe Entitatea imagine setez ad-ul
+			img.setAd(ad);
+			return img;
+		}).collect(Collectors.toList());
 
 
-		// setez ad-ul in lista de pe user
-		user.getAds()
-				.add(ad);
-		System.out.println("entità: " + user.getAds());
-		repoUser.save(user);
-		System.out.println("merge");
-		return convertAdInDto(ad);
+		imageRepository.saveAll(images);
+		//ad.setImages(images);
+		Optional<Ad> adFromRepo = adRepository.findById(ad.getId());
+
+		return convertAdInDtoOptional(adFromRepo);
 	}
+
 
 	@Override
 	public AdDto getAdById(Long id) {
-		Optional<Ad> ad = repoUser.findAdById(id);
+		Ad ad = adRepository.findById(id).orElseThrow(NotFoundAdException::new);
 	/*	List<Ad> ad = user.getAds().stream()
 				.filter(ad1 -> ad1.getId().equals(id))
 				.collect(Collectors.toList()); */
-		return convertAdInDtoOptional(ad);
+		return convertAdInDto(ad);
 	}
 
 	@Override
 	public AdDto updateAd(AdDto adDto, Long userId, Long adId) {
 		User user = repoUser.findById(userId)
 				.orElseThrow(NotFoundUserException::new);
-		Ad ad = user.getAds()
+	/*	Ad ad = adRepository.findById(adId).stream()
+				.map(ad1 -> {
+					if(ad1.getUser().getId().equals(userId)) {
+						ad1.setTitleProduct(adDto.getTitleProduct());
+						ad1.setDescriptionProduct(adDto.getDescriptionProduct());
+						ad1.setCategory(adDto.getCategory());
+						ad1.setPriceProduct(adDto.getPriceProduct());
+						ad1.setImages(adDto.getImages());
+					}
+				})
+		        .orElseThrow(NotFoundAdException::new);       */
+
+
+	/*	Ad ad = user.getAds()
 				.get((int) (long) adId);
 		user.getAds()
-				.add((int) (long) ad.getId(), convertAdInEntity(adDto));
-		return convertAdInDto(ad);
+				.add((int) (long) ad.getId(), convertAdInEntity(adDto));   */
+		return null;//convertAdInDto(ad);
 	}
 
 	@Override
@@ -204,9 +200,6 @@ public class UserServiceImpl implements UserService {
 		AdDto adDto = new AdDto();
 		adDto.setId(ad.getId());
 		adDto.setPriceProduct(ad.getPriceProduct());
-		//adDto.getImages().add(ad.getImages());
-		//adDto.setImageProduct(ad.getImageProduct());
-		System.out.println(ad.getImages());
 		adDto.setImages(ad.getImages());
 		adDto.setDescriptionProduct(ad.getDescriptionProduct());
 		adDto.setTitleProduct(ad.getTitleProduct());
@@ -219,6 +212,7 @@ public class UserServiceImpl implements UserService {
 		AdDto adDto = new AdDto();
 		adDto.setId(ad.get().getId());
 		adDto.setPriceProduct(ad.get().getPriceProduct());
+		adDto.setImages(ad.get().getImages());
 		//adDto.setImageProduct(ad.get().getImageProduct());
 		adDto.setDescriptionProduct(ad.get().getDescriptionProduct());
 		adDto.setTitleProduct(ad.get().getTitleProduct());

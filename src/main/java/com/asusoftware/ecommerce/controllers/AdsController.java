@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.asusoftware.ecommerce.dto.AdDto;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
+import com.asusoftware.ecommerce.model.Image;
 import com.asusoftware.ecommerce.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

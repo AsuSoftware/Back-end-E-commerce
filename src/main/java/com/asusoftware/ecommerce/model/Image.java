@@ -1,5 +1,6 @@
 package com.asusoftware.ecommerce.model;
 
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -44,5 +45,4 @@ public class Image {
     public void setAd(Ad ad) {
         this.ad = ad;
     }
-
 }
