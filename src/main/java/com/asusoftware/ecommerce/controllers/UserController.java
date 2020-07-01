@@ -8,6 +8,7 @@ import com.asusoftware.ecommerce.exceptions.InvalidPasswordException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
 import com.asusoftware.ecommerce.model.User;
 import com.asusoftware.ecommerce.services.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,12 +34,17 @@ public class UserController {
 	// add user
 	// @PostMapping(value = "create",consumes = "application/json", produces = "application/json")
 	@PostMapping
-	private void createUser(@RequestBody User user) {
-		userService.insertUser(user);
+	private ResponseEntity createUser(@RequestBody User user) {
+		try {
+			userService.insertUser(user);
+			return ResponseEntity.status(HttpStatus.CREATED).build();
+		} catch (Exception ex) {
+			return ResponseEntity.badRequest().build();
+		}
 	}
 
 	// login
-	@PostMapping(value = "login")
+	@PostMapping("login")
 	private ResponseEntity<UserDto> findByEmailAndPassword(@RequestBody LoginDto login) {
 		try {
 			UserDto user = userService.findByEmailAndPassword(login.getEmail(), login.getPassword());

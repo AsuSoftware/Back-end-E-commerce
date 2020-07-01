@@ -1,13 +1,12 @@
 package com.asusoftware.ecommerce.dto;
 
-import com.asusoftware.ecommerce.model.Image;
 
 import java.util.List;
 
 public class AdDto {
 
     private Long id;
-    private List<Image> images;
+    private List<ImageDto> images;
     private String titleProduct;
     private String descriptionProduct;
     private Double priceProduct;
@@ -23,11 +22,11 @@ public class AdDto {
         this.id = id;
     }
 
-    public List<Image> getImages() {
+    public List<ImageDto> getImages() {
         return images;
     }
 
-    public void setImages(List<Image> images) {
+    public void setImages(List<ImageDto> images) {
         this.images = images;
     }
 

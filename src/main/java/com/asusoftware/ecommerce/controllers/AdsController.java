@@ -1,19 +1,17 @@
 package com.asusoftware.ecommerce.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.asusoftware.ecommerce.dto.AdDto;
+import com.asusoftware.ecommerce.exceptions.NotFoundAdException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
+import com.asusoftware.ecommerce.model.Ad;
 import com.asusoftware.ecommerce.model.Image;
 import com.asusoftware.ecommerce.services.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin("*")
@@ -55,13 +53,39 @@ public class AdsController {
 	@PostMapping("/{id}")
 	private ResponseEntity<AdDto> addAd(@RequestBody AdDto adDto, @PathVariable("id") Long id) {
 		try {
-			return ResponseEntity.ok(userService.insertAd(adDto, id));
+			Optional<Ad> ad = userService.insertAd(adDto, id);
+			return ResponseEntity.status(HttpStatus.CREATED).build();
 		} catch (NotFoundUserException ex) {
 			return ResponseEntity.notFound()
 					.build();
 		} catch (Exception e) {
 			return ResponseEntity.badRequest()
 					.build();
+		}
+	}
+
+	@PutMapping("/{userId}/{adId}")
+	private ResponseEntity<AdDto> updateAd(@RequestBody AdDto adDto, @PathVariable("userId") Long userId, @PathVariable("adId") Long adId) {
+		try {
+			System.out.println(userId + " si : " + adId);
+			AdDto ad = userService.updateAd(adDto, userId, adId);
+			return ResponseEntity.ok(ad);
+		} catch (NotFoundUserException ex) {
+			return ResponseEntity.notFound().build();
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
+		}
+	}
+
+	@DeleteMapping("/{id}")
+	private ResponseEntity deleteAd(@PathVariable("id") Long id) {
+		try {
+			userService.deleteAd(id);
+			return ResponseEntity.ok().build();
+		} catch (NotFoundAdException ex) {
+			return ResponseEntity.notFound().build();
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().build();
 		}
 	}
 

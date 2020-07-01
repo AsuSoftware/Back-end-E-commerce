@@ -1,7 +1,7 @@
 package com.asusoftware.ecommerce.model;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sun.istack.NotNull;
 
 import javax.persistence.*;
 
@@ -14,12 +14,14 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "image_product")
+
+    @Column(name = "image_product", length = 9999999)
+    @NotNull
     private String image;
 
 
     @ManyToOne // molti annunci su uno user
-    @JoinColumn(name = "ad_id")
+    @JoinColumn(name = "ad_id") // fa il join con l'altra colonna di un'altra Entità
     private Ad ad;
 
     public Long getId() {
@@ -45,4 +47,5 @@ public class Image {
     public void setAd(Ad ad) {
         this.ad = ad;
     }
+
 }
