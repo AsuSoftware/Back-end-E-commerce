@@ -7,29 +7,21 @@ import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.exceptions.InvalidPasswordException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
 import com.asusoftware.ecommerce.model.User;
-import com.asusoftware.ecommerce.services.UserService;
+import com.asusoftware.ecommerce.services.AdServiceImpl;
+import com.asusoftware.ecommerce.services.UserServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @CrossOrigin("*") // Abilitazione delle CORS - Cross Origin Resource Sharing
 @RequestMapping("/api/users")
 public class UserController {
 
-	private final UserService userService;
+	private final UserServiceImpl userService;
 
-	public UserController(UserService userService) {
-		this.userService = userService;
-	}
 
 	// add user
 	// @PostMapping(value = "create",consumes = "application/json", produces = "application/json")
@@ -44,6 +36,7 @@ public class UserController {
 	}
 
 	// login
+	//@ResponseStatus(HttpStatus.ACCEPTED)
 	@PostMapping("login")
 	private ResponseEntity<UserDto> findByEmailAndPassword(@RequestBody LoginDto login) {
 		try {
@@ -60,7 +53,7 @@ public class UserController {
 	@GetMapping
 	private ResponseEntity<List<UserDto>> getUsers() {
 		try {
-			return ResponseEntity.ok(userService.getUsers());
+			return ResponseEntity.ok(userService.findUsers());
 		} catch (Exception ex) {
 			return ResponseEntity.notFound()
 					.build();
@@ -69,10 +62,10 @@ public class UserController {
 
 	// get user
 	@GetMapping(value = "/{id}")
-	private ResponseEntity<User> getUser(@PathVariable("id") Long id) {
+	private ResponseEntity<UserDto> getUser(@PathVariable("id") Long id) {
 		System.out.println("Id: " + id);
 		try {
-			User user = userService.getUserById(id);
+			UserDto user = userService.findUserById(id);
 			return ResponseEntity.ok(user); // restituisce l'utente
 		} catch (Exception e) {
 			return ResponseEntity.notFound()
@@ -82,9 +75,9 @@ public class UserController {
 
 	// update user
 	@PutMapping(value = "/{id}")
-	private ResponseEntity<User> updateUser(@RequestBody User user, @PathVariable Long id) {
+	private ResponseEntity<User> updateUser(@RequestBody UserDto userDto, @PathVariable Long id) {
 		try {
-			User userNew = userService.updateUser(user, id);
+			User userNew = userService.updateUser(userDto, id);
 			return ResponseEntity.ok(userNew);
 		} catch (NotFoundUserException ex) {
 			return ResponseEntity.notFound()
@@ -97,9 +90,9 @@ public class UserController {
 
 	// delete user
 	@DeleteMapping(value = "/{id}")
-	private ResponseEntity<Boolean> deleteUser(@RequestBody User user, @PathVariable Long id) {
+	private ResponseEntity<Boolean> deleteUser(@RequestBody UserDto userDto, @PathVariable Long id) {
 		try {
-			userService.deleteUser(id, user.getPassword());
+			userService.deleteUser(id, userDto.getPassword());
 			return ResponseEntity.ok(true);
 		} catch (InvalidPasswordException e) {
 			return ResponseEntity.badRequest()

@@ -1,6 +1,8 @@
 package com.asusoftware.ecommerce.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Date;
 
 public class UserDto {
@@ -11,6 +13,9 @@ public class UserDto {
     private Date birthday;
     private String gender;
     private String email;
+
+    @JsonIgnore
+    private String password;
 
     public Long getId() {
         return id;
@@ -58,5 +63,13 @@ public class UserDto {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

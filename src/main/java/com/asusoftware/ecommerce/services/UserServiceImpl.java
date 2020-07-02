@@ -1,40 +1,33 @@
 package com.asusoftware.ecommerce.services;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.asusoftware.ecommerce.dto.AdDto;
-import com.asusoftware.ecommerce.dto.ImageDto;
+
 import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.exceptions.InvalidPasswordException;
-import com.asusoftware.ecommerce.exceptions.NotFoundAdException;
 import com.asusoftware.ecommerce.exceptions.NotFoundUserException;
-import com.asusoftware.ecommerce.model.Ad;
-import com.asusoftware.ecommerce.model.Image;
 import com.asusoftware.ecommerce.model.User;
-import com.asusoftware.ecommerce.repository.AdRepository;
-import com.asusoftware.ecommerce.repository.ImageRepository;
 import com.asusoftware.ecommerce.repository.UserRepository;
+import com.asusoftware.ecommerce.services.userService.CreateUserService;
+import com.asusoftware.ecommerce.services.userService.DeleteUserService;
+import com.asusoftware.ecommerce.services.userService.FindUserService;
+import com.asusoftware.ecommerce.services.userService.UpdateUserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserServiceImpl implements UserService {
+@RequiredArgsConstructor // (Lombok) ci crea lui il costruttore con gli argomenti(dipenedenze)
+public class UserServiceImpl implements CreateUserService, UpdateUserService, FindUserService, DeleteUserService {
 
-	private UserRepository repoUser;
-	private AdRepository adRepository;
-	private ImageRepository imageRepository;
+	private final UserRepository repoUser;
 
-	public UserServiceImpl(UserRepository userRepository, AdRepository adRepository, ImageRepository imageRepository) {
-		repoUser = userRepository;
-		this.adRepository = adRepository;
-		this.imageRepository = imageRepository;
-	}
 
 	// get users
 	@Override
-	public List<UserDto> getUsers() {
+	public List<UserDto> findUsers() {
 		return repoUser.findAll()
 				.stream()
 				.map(this::convertUserInDto)
@@ -50,10 +43,11 @@ public class UserServiceImpl implements UserService {
 
 	// get user by id
 	@Override
-	public User getUserById(Long id) throws Exception {
+	public UserDto findUserById(Long id) throws Exception {
 		System.out.println(repoUser.findById(id));
-		return repoUser.findById(id)
+		User user = repoUser.findById(id)
 				.orElseThrow(Exception::new);
+		return convertUserInDto(user);
 	}
 
 	// method for login user
@@ -65,9 +59,10 @@ public class UserServiceImpl implements UserService {
 
 	// update user
 	@Override
-	public User updateUser(User user, Long id) {
+	public User updateUser(UserDto userDto, Long id) {
 		User userNew = repoUser.findById(id)
 				.orElseThrow(NotFoundUserException::new);
+		User user = convertUserDtoInEntity(userDto);
 		userNew.setName(user.getName());
 		userNew.setLastName(user.getLastName());
 		userNew.setGender(user.getGender());
@@ -89,87 +84,6 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-	// Ads
-	// get all ads from database
-	@Override
-	public List<AdDto> getAllAds() {
-
-		//List<User> users = repoUser.findAll().stream().filter(user -> user.getAds().size() > 0).collect(Collectors.toList());
-		//List<AdDto> adsDto = users.stream().map(User::getAds).map(this::convertAdsInDto).flatMap(List::stream).collect(Collectors.toList());
-
-		List<AdDto> adsDto = adRepository.findAll().stream().map(this::convertAdInDto).collect(Collectors.toList());
-
-	    return adsDto;
-	}
-
-	@Override
-	public Optional<Ad> insertAd(AdDto adDto, Long id) {
-
-		// find the current user
-		User user = repoUser.findById(id)
-				.orElseThrow(NotFoundUserException::new);
-
-		Ad ad = new Ad();
-		ad.setTitleProduct(adDto.getTitleProduct());
-		ad.setCategory(adDto.getCategory());
-		ad.setPriceProduct(adDto.getPriceProduct());
-		ad.setDescriptionProduct(adDto.getDescriptionProduct());
-		ad.setUser(user);
-		adRepository.save(ad);
-
-		List<Image> images = adDto.getImages().stream().map(image -> {
-			Image img = new Image();
-			img.setImage(image.getImage());
-			// pe Entitatea imagine setez ad-ul
-			img.setAd(ad);
-			return img;
-		}).collect(Collectors.toList());
-
-		imageRepository.saveAll(images);
-
-		return adRepository.findById(ad.getId());
-	}
-
-
-	@Override
-	public AdDto getAdById(Long id) {
-		Ad ad = adRepository.findById(id).orElseThrow(NotFoundAdException::new);
-	/*	List<Ad> ad = user.getAds().stream()
-				.filter(ad1 -> ad1.getId().equals(id))
-				.collect(Collectors.toList()); */
-		return convertAdInDto(ad);
-	}
-
-	@Override
-	public AdDto updateAd(AdDto adDto, Long userId, Long adId) {
-		User user = repoUser.findById(userId)
-				.orElseThrow(NotFoundUserException::new);
-
-		Ad ad = adRepository.findById(adId).orElseThrow(NotFoundAdException::new);
-
-		List<Image> images = adDto.getImages().stream().map(imageDto -> {
-			Image image = new Image();
-			image.setImage(imageDto.getImage());
-			return image;
-		}).collect(Collectors.toList());
-
-
-		ad.setTitleProduct(adDto.getTitleProduct());
-		ad.setDescriptionProduct(adDto.getDescriptionProduct());
-		ad.setCategory(adDto.getCategory());
-		ad.setPriceProduct(adDto.getPriceProduct());
-		ad.setImages(images);
-
-		adRepository.save(ad);
-
-
-		return convertAdInDtoOptional(adRepository.findById(ad.getId()));
-	}
-
-	@Override
-	public void deleteAd(Long id) {
-      adRepository.deleteById(id);
-	}
 
 	// metodo per conversione da entità user a Dto
 	private UserDto convertUserInDto(User user) {
@@ -183,82 +97,15 @@ public class UserServiceImpl implements UserService {
 		return userDto;
 	}
 
-	// metodo per conversione da Dto user a Entità
-	private User convertUserInDto(UserDto userDto) {
+	private User convertUserDtoInEntity(UserDto userDto) {
 		User user = new User();
-		user.setId(userDto.getId());
 		user.setName(userDto.getName());
 		user.setLastName(userDto.getLastName());
-		user.setBirthday(userDto.getBirthday());
 		user.setGender(userDto.getGender());
-		user.setEmail(userDto.getEmail());
+		user.setBirthday(userDto.getBirthday());
+		user.setPassword(userDto.getPassword());
 		return user;
 	}
 
-	// metodo per conversione da entità ad a Dto
-	private AdDto convertAdInDto(Ad ad) {
-		AdDto adDto = new AdDto();
-		adDto.setId(ad.getId());
-		adDto.setPriceProduct(ad.getPriceProduct());
-		adDto.setImages(ad.getImages().stream().map(image -> {
-			ImageDto imageDto = new ImageDto();
-			imageDto.setId(image.getId());
-			imageDto.setImage(image.getImage());
-			return imageDto;
-		}).collect(Collectors.toList()));
-		adDto.setDescriptionProduct(ad.getDescriptionProduct());
-		adDto.setTitleProduct(ad.getTitleProduct());
-		adDto.setCategory(ad.getCategory());
-		return adDto;
-	}
-
-	// metodo per conversione da entità ad a Dto
-	private AdDto convertAdInDtoOptional(Optional<Ad> ad) {
-		AdDto adDto = new AdDto();
-		adDto.setId(ad.get().getId());
-		adDto.setPriceProduct(ad.get().getPriceProduct());
-		List<ImageDto> imagesDto = ad.get().getImages().stream().map(image -> {
-			System.out.println("prima");
-			ImageDto imageDto = new ImageDto();
-			System.out.println("doua");
-			imageDto.setId(image.getId());
-			System.out.println("trei");
-			imageDto.setImage(image.getImage());
-			return imageDto;
-		}).collect(Collectors.toList());
-
-		adDto.setImages(imagesDto);
-		adDto.setDescriptionProduct(ad.get().getDescriptionProduct());
-		adDto.setTitleProduct(ad.get().getTitleProduct());
-		adDto.setCategory(ad.get().getCategory());
-		return adDto;
-	}
-
-	// metodo per conversione da entità ad a Dto con foreach
-	private List<AdDto> convertAdsInDto(List<Ad> ads) {
-		List<AdDto> adsDto = new ArrayList<>();
-		for (Ad ad: ads) {
-			AdDto adDto = new AdDto();
-			adDto.setId(ad.getId());
-			adDto.setPriceProduct(ad.getPriceProduct());
-			//adDto.setImageProduct(ad.getImageProduct());
-			adDto.setDescriptionProduct(ad.getDescriptionProduct());
-			adDto.setTitleProduct(ad.getTitleProduct());
-			adDto.setCategory(ad.getCategory());
-			adsDto.add(adDto);
-		}
-		return adsDto;
-	}
-
-	// metodo per conversione da Dto ad a Entità
-	private Ad convertAdInEntity(AdDto adDto) {
-		Ad ad = new Ad();
-		ad.setPriceProduct(adDto.getPriceProduct());
-		//ad.setImageProduct(adDto.getImageProduct());
-		ad.setDescriptionProduct(adDto.getDescriptionProduct());
-		ad.setTitleProduct(adDto.getTitleProduct());
-		ad.setCategory(adDto.getCategory());
-		return ad;
-	}
 
 }
