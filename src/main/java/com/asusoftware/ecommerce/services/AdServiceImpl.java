@@ -15,6 +15,7 @@ import com.asusoftware.ecommerce.services.adService.DeleteAdService;
 import com.asusoftware.ecommerce.services.adService.FindAdService;
 import com.asusoftware.ecommerce.services.adService.UpdateAdService;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,9 +31,8 @@ public class AdServiceImpl implements CreateAdService, UpdateAdService, FindAdSe
     private final ImageRepository imageRepository;
 
     @Override
-    public Optional<Ad> insertAd(AdDto adDto, Long id) {
-        User user = repoUser.findById(id)
-                .orElseThrow(NotFoundUserException::new); // find the current user
+    public void insertAd(AdDto adDto, Long id) {
+        User user = repoUser.findById(id).orElseThrow(NotFoundUserException::new); // find the current user
         Ad ad = convertAdDtoInEntity(adDto);
         ad.setUser(user);
         adRepository.save(ad);
@@ -43,12 +43,16 @@ public class AdServiceImpl implements CreateAdService, UpdateAdService, FindAdSe
             return img;
         }).collect(Collectors.toList());
         imageRepository.saveAll(images);
-        return adRepository.findById(ad.getId());
     }
 
     @Override
     public void deleteAd(Long id) {
-        adRepository.deleteById(id);
+        try {
+            adRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new NotFoundAdException();
+        }
+
     }
 
     @Override
@@ -63,9 +67,8 @@ public class AdServiceImpl implements CreateAdService, UpdateAdService, FindAdSe
     }
 
     @Override
-    public AdDto updateAd(AdDto adDto, Long userId, Long adId) {
-        User user = repoUser.findById(userId)
-                .orElseThrow(NotFoundUserException::new);
+    public void updateAd(AdDto adDto, Long userId, Long adId) {
+        repoUser.findById(userId).orElseThrow(NotFoundUserException::new);
         Ad ad = adRepository.findById(adId).orElseThrow(NotFoundAdException::new);
         List<Image> images = adDto.getImages().stream().map(this::convertImageDtoInImage).collect(Collectors.toList());
         ad.setTitleProduct(adDto.getTitleProduct());
@@ -74,10 +77,9 @@ public class AdServiceImpl implements CreateAdService, UpdateAdService, FindAdSe
         ad.setPriceProduct(adDto.getPriceProduct());
         ad.setImages(images);
         adRepository.save(ad);
-        return convertAdInDtoOptional(adRepository.findById(ad.getId()));
     }
 
-    // metodo per conversione da entità ad a Dto
+
     private AdDto convertAdInDto(Ad ad) {
         AdDto adDto = new AdDto();
         adDto.setId(ad.getId());
@@ -89,18 +91,6 @@ public class AdServiceImpl implements CreateAdService, UpdateAdService, FindAdSe
         return adDto;
     }
 
-    // metodo per conversione da entità ad a Dto
-    private AdDto convertAdInDtoOptional(Optional<Ad> ad) {
-        AdDto adDto = new AdDto();
-        adDto.setId(ad.get().getId());
-        adDto.setPriceProduct(ad.get().getPriceProduct());
-        List<ImageDto> imagesDto = ad.get().getImages().stream().map(this::convertImageInDto).collect(Collectors.toList());
-        adDto.setImages(imagesDto);
-        adDto.setDescriptionProduct(ad.get().getDescriptionProduct());
-        adDto.setTitleProduct(ad.get().getTitleProduct());
-        adDto.setCategory(ad.get().getCategory());
-        return adDto;
-    }
 
     private Ad convertAdDtoInEntity(AdDto adDto) {
         Ad ad = new Ad();

@@ -25,7 +25,6 @@ public class UserServiceImpl implements CreateUserService, UpdateUserService, Fi
 	private final UserRepository repoUser;
 
 
-	// get users
 	@Override
 	public List<UserDto> findUsers() {
 		return repoUser.findAll()
@@ -34,32 +33,30 @@ public class UserServiceImpl implements CreateUserService, UpdateUserService, Fi
 				.collect(Collectors.toList());
 	}
 
-	// add user
+
 	@Override
-	public Optional<User> insertUser(User user) {
+	public void insertUser(User user) {
 		repoUser.save(user);
-		return repoUser.findById(user.getId());
 	}
 
-	// get user by id
+
 	@Override
-	public UserDto findUserById(Long id) throws Exception {
-		System.out.println(repoUser.findById(id));
+	public UserDto findUserById(Long id) {
 		User user = repoUser.findById(id)
-				.orElseThrow(Exception::new);
+				.orElseThrow(NotFoundUserException::new);
 		return convertUserInDto(user);
 	}
 
-	// method for login user
+
 	@Override
 	public UserDto findByEmailAndPassword(String email, String password) {
 			User user = repoUser.findByEmailAndPassword(email, password).orElseThrow(NotFoundUserException::new);
 			return convertUserInDto(user);
 	}
 
-	// update user
+
 	@Override
-	public User updateUser(UserDto userDto, Long id) {
+	public void updateUser(UserDto userDto, Long id) {
 		User userNew = repoUser.findById(id)
 				.orElseThrow(NotFoundUserException::new);
 		User user = convertUserDtoInEntity(userDto);
@@ -68,16 +65,14 @@ public class UserServiceImpl implements CreateUserService, UpdateUserService, Fi
 		userNew.setGender(user.getGender());
 		userNew.setBirthday(user.getBirthday());
 		userNew.setPassword(user.getPassword());
-		return repoUser.save(userNew);
+		repoUser.save(userNew);
 	}
 
-	// delete user
+
 	@Override
-	public void deleteUser(Long id, String password) throws Exception {
-		User user = repoUser.findById(id)
-				.orElseThrow(Exception::new);
-		if (user.getPassword()
-				.equals(password)) {
+	public void deleteUser(Long id, String password) {
+		User user = repoUser.findById(id).orElseThrow(NotFoundUserException::new);
+		if (user.getPassword().equals(password)) {
 			repoUser.deleteById(id);
 		} else {
 			throw new InvalidPasswordException();
@@ -85,7 +80,6 @@ public class UserServiceImpl implements CreateUserService, UpdateUserService, Fi
 	}
 
 
-	// metodo per conversione da entità user a Dto
 	private UserDto convertUserInDto(User user) {
 		UserDto userDto = new UserDto();
 		userDto.setId(user.getId());

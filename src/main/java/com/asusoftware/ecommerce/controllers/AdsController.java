@@ -23,57 +23,29 @@ public class AdsController {
 	private final AdServiceImpl adService;
 
 
-	// get all ads
+	@ResponseStatus(HttpStatus.FOUND)
 	@GetMapping
-	public ResponseEntity<List<AdDto>> getAllAds() {
-		try {
-			List<AdDto> ads = adService.findAllAds();
-			return ResponseEntity.ok(ads);
-		} catch (NotFoundUserException ex) {
-			return ResponseEntity.notFound()
-					.build();
-		} catch (Exception e) {
-			return ResponseEntity.badRequest()
-					.build();
-		}
+	public List<AdDto> getAllAds() {
+		return adService.findAllAds();
 	}
 
-	// get specific ad with the id
+
+	@ResponseStatus(HttpStatus.FOUND)
 	@GetMapping("/{id}")
-	public ResponseEntity<AdDto> getAd(@PathVariable Long id) {
-		try {
-			return ResponseEntity.ok(adService.findAdById(id));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest()
-					.build();
-		}
+	public AdDto getAd(@PathVariable Long id) {
+		return adService.findAdById(id);
 	}
 
+	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/{id}")
-	public ResponseEntity<AdDto> addAd(@RequestBody AdDto adDto, @PathVariable("id") Long id) {
-		try {
-			Optional<Ad> ad = adService.insertAd(adDto, id);
-			return ResponseEntity.status(HttpStatus.CREATED).build();
-		} catch (NotFoundUserException ex) {
-			return ResponseEntity.notFound()
-					.build();
-		} catch (Exception e) {
-			return ResponseEntity.badRequest()
-					.build();
-		}
+	public void addAd(@RequestBody AdDto adDto, @PathVariable("id") Long id) {
+		adService.insertAd(adDto, id);
 	}
 
+	@ResponseStatus(HttpStatus.OK)
 	@PutMapping("/{userId}/{adId}")
-	public ResponseEntity<AdDto> updateAd(@RequestBody AdDto adDto, @PathVariable("userId") Long userId, @PathVariable("adId") Long adId) {
-		try {
-			System.out.println(userId + " si : " + adId);
-			AdDto ad = adService.updateAd(adDto, userId, adId);
-			return ResponseEntity.ok(ad);
-		} catch (NotFoundUserException ex) {
-			return ResponseEntity.notFound().build();
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().build();
-		}
+	public void updateAd(@RequestBody AdDto adDto, @PathVariable("userId") Long userId, @PathVariable("adId") Long adId) {
+		adService.updateAd(adDto, userId, adId);
 	}
 
 	@ResponseStatus(HttpStatus.OK) // e una maniera più semplice, per non usare responseEntity

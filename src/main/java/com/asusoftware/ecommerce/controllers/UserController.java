@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,84 +24,46 @@ public class UserController {
 	private final UserServiceImpl userService;
 
 
-	// add user
 	// @PostMapping(value = "create",consumes = "application/json", produces = "application/json")
+	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	private ResponseEntity createUser(@RequestBody User user) {
-		try {
-			userService.insertUser(user);
-			return ResponseEntity.status(HttpStatus.CREATED).build();
-		} catch (Exception ex) {
-			return ResponseEntity.badRequest().build();
-		}
+	private void createUser(@RequestBody User user) {
+		 userService.insertUser(user);
 	}
 
-	// login
-	//@ResponseStatus(HttpStatus.ACCEPTED)
+
+	@ResponseStatus(HttpStatus.ACCEPTED)
 	@PostMapping("login")
-	private ResponseEntity<UserDto> findByEmailAndPassword(@RequestBody LoginDto login) {
-		try {
-			UserDto user = userService.findByEmailAndPassword(login.getEmail(), login.getPassword());
-			return ResponseEntity.ok(user);
-		} catch (NotFoundUserException ex) {
-			return ResponseEntity.notFound().build();
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().build();
-		}
+	private UserDto findByEmailAndPassword(@RequestBody LoginDto login) {
+			return userService.findByEmailAndPassword(login.getEmail(), login.getPassword());
 	}
 
-	// get all users
+
+	@ResponseStatus(HttpStatus.FOUND)
 	@GetMapping
-	private ResponseEntity<List<UserDto>> getUsers() {
-		try {
-			return ResponseEntity.ok(userService.findUsers());
-		} catch (Exception ex) {
-			return ResponseEntity.notFound()
-					.build();
-		}
+	private List<UserDto> getUsers() {
+			return userService.findUsers();
 	}
 
-	// get user
+
+	@ResponseStatus(HttpStatus.FOUND)
 	@GetMapping(value = "/{id}")
-	private ResponseEntity<UserDto> getUser(@PathVariable("id") Long id) {
-		System.out.println("Id: " + id);
-		try {
-			UserDto user = userService.findUserById(id);
-			return ResponseEntity.ok(user); // restituisce l'utente
-		} catch (Exception e) {
-			return ResponseEntity.notFound()
-					.build();
-		}
+	private UserDto getUser(@PathVariable("id") Long id) {
+			return userService.findUserById(id);
 	}
 
 	// update user
+	@ResponseStatus(HttpStatus.OK)
 	@PutMapping(value = "/{id}")
-	private ResponseEntity<User> updateUser(@RequestBody UserDto userDto, @PathVariable Long id) {
-		try {
-			User userNew = userService.updateUser(userDto, id);
-			return ResponseEntity.ok(userNew);
-		} catch (NotFoundUserException ex) {
-			return ResponseEntity.notFound()
-					.build();
-		} catch (Exception ex) {
-			return ResponseEntity.badRequest()
-					.build();
-		}
+	private void updateUser(@RequestBody UserDto userDto, @PathVariable Long id) {
+			userService.updateUser(userDto, id);
 	}
 
 	// delete user
+	@ResponseStatus(HttpStatus.OK)
 	@DeleteMapping(value = "/{id}")
-	private ResponseEntity<Boolean> deleteUser(@RequestBody UserDto userDto, @PathVariable Long id) {
-		try {
-			userService.deleteUser(id, userDto.getPassword());
-			return ResponseEntity.ok(true);
-		} catch (InvalidPasswordException e) {
-			return ResponseEntity.badRequest()
-					.build();
-		} catch (Exception ex) {
-			return ResponseEntity.notFound()
-					.build();
-		}
+	private void deleteUser(@RequestBody UserDto userDto, @PathVariable Long id) {
+		userService.deleteUser(id, userDto.getPassword());
 	}
 
 	// per immettere il pagamento nella app, quando compri qualcosa si usa il
