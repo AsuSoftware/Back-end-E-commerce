@@ -4,5 +4,5 @@ import com.asusoftware.ecommerce.dto.UserDto;
 import com.asusoftware.ecommerce.model.User;
 
 public interface UpdateUserService {
-    User updateUser(UserDto userDto, Long id);
+    void updateUser(UserDto userDto, Long id);
 }

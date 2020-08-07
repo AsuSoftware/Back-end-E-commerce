@@ -9,5 +9,5 @@ import java.util.Optional;
  */
 public interface CreateUserService {
 
-    Optional<User> insertUser(User user);
+    void insertUser(User user);
 }
